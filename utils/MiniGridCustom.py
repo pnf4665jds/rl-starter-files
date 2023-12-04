@@ -9,7 +9,7 @@ import torch.nn as nn
 from minigrid.core.constants import COLOR_NAMES
 from minigrid.core.grid import Grid
 from minigrid.core.mission import MissionSpace
-from minigrid.core.world_object import Door, Goal, Key, Wall, Ball
+from minigrid.core.world_object import Door, Goal, Key, Wall, Ball, Floor
 from minigrid.manual_control import ManualControl
 from minigrid.minigrid_env import MiniGridEnv
 
@@ -35,7 +35,7 @@ class EdgeEnv(MiniGridEnv):
         mission_space = MissionSpace(mission_func=self._gen_mission)
 
         if max_steps is None:
-            max_steps = 4 * size**2
+            max_steps = size**2
 
         super().__init__(
             mission_space=mission_space,
@@ -72,8 +72,8 @@ class EdgeEnv(MiniGridEnv):
 
         self.goal_count = 2
 
-        goal_i_list = [goal_i1, goal_i2, 5]
-        goal_j_list = [goal_j1, goal_j2, 5]
+        goal_i_list = [goal_i1, goal_i2]
+        goal_j_list = [goal_j1, goal_j2]
 
         # Generate wall
         for i in range(1, width - 1):
@@ -84,12 +84,8 @@ class EdgeEnv(MiniGridEnv):
                     continue
                 self.grid.set(i, j, Wall())
 
-        # Place the agent
-        if self.agent_start_pos is not None:
-            self.agent_pos = self.agent_start_pos
-            self.agent_dir = self.agent_start_dir
-        else:
-            self.place_agent()
+        self.agent_dir = 0
+        self.agent_pos = (goal_i1, goal_j2)
 
     def step(self, action):
         self.step_count += 1
@@ -118,8 +114,9 @@ class EdgeEnv(MiniGridEnv):
         elif action == self.actions.forward:
             if fwd_cell is None or fwd_cell.can_overlap():
                 self.agent_pos = tuple(fwd_pos)
+                self.grid.set(fwd_pos[0], fwd_pos[1], Floor(color="yellow"))
             if fwd_cell is not None and fwd_cell.type == "goal":
-                self.grid.set(fwd_pos[0], fwd_pos[1], None)
+                self.grid.set(fwd_pos[0], fwd_pos[1], Floor(color="yellow"))
                 reward = 0.1
                 self.goal_count -= 1
                 
