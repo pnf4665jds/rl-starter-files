@@ -23,7 +23,7 @@ gym.register(id='MyEnv-v0', entry_point='utils:EdgeEnv')
 class EdgeEnv(MiniGridEnv):
     def __init__(
         self,
-        size=10,
+        size=12,
         agent_start_pos=(5, 5),
         agent_start_dir=0,
         max_steps: int | None = None,
@@ -47,14 +47,14 @@ class EdgeEnv(MiniGridEnv):
             **kwargs,
         )
         self.action_space = spaces.Discrete(3)
+        self.node_list_2d = None
 
     @staticmethod
     def _gen_mission():
         return "grand mission"
 
     def set_target(self, node_list_2d):
-        print(node_list_2d)
-        pass
+        self.node_list_2d = node_list_2d
 
     def _gen_grid(self, width, height):
         # Create an empty grid
@@ -63,21 +63,24 @@ class EdgeEnv(MiniGridEnv):
         # Generate the surrounding walls
         self.grid.wall_rect(0, 0, width, height)
         
-        # Place the goal
-        goal_i1 = random.randint(1, 4)
-        goal_j1 = random.randint(2, 4)
-        self.goal1 = Goal()
-        self.grid.set(goal_i1, goal_j1, self.goal1)
+        if self.node_list_2d == None:
+            self.agent_dir = 0
+            self.agent_pos = (1, 1)
+            return
 
-        goal_i2 = random.randint(6, 8)
-        goal_j2 = random.randint(6, 8)
-        self.goal2 = Goal()
-        self.grid.set(goal_i2, goal_j2, self.goal2)
+        goal_i_list = []
+        goal_j_list = []
 
-        self.goal_count = 2
+        for node in self.node_list_2d:
+            # Place the goal
+            goal_i = round(node[0]) + 1
+            goal_j = round(node[1]) + 1
+            self.goal = Goal()
+            self.grid.set(goal_i, goal_j, self.goal)
+            goal_i_list.append(goal_i)
+            goal_j_list.append(goal_j)
 
-        goal_i_list = [goal_i1, goal_i2]
-        goal_j_list = [goal_j1, goal_j2]
+        self.goal_count = len(goal_i_list)
 
         # Generate wall
         for i in range(1, width - 1):
@@ -89,7 +92,7 @@ class EdgeEnv(MiniGridEnv):
                 self.grid.set(i, j, Wall())
 
         self.agent_dir = 0
-        self.agent_pos = (goal_i1, goal_j2)
+        self.agent_pos = (1, 1)
 
     def step(self, action):
         self.step_count += 1

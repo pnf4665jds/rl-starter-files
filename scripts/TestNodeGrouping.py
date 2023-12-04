@@ -36,39 +36,29 @@ parser.add_argument("--text", action="store_true", default=False,
 
 args = parser.parse_args()
 
-# Set seed for all randomness sources
-
-utils.seed(args.seed)
-
-# Set device
-
-print(f"Device: {device}\n")
-
-# Load environment
-
-env = utils.make_env(args.env, args.seed, render_mode="human")
-for _ in range(args.shift):
-    env.reset()
-print("Environment loaded\n")
-
-# Load agent
-os.environ["RL_STORAGE"] = "E://Research//Blender-2.91-Test//2.91//scripts//addons//LandscapeTool//PoleReconstruction//StableBaseline3//MiniGrid//storage"
-model_dir = utils.get_model_dir(args.model)
-agent = utils.Agent(env.observation_space, env.action_space, model_dir,
-                    argmax=args.argmax, use_memory=args.memory, use_text=args.text)
-print("Agent loaded\n")
-
-with open(os.path.join(os.path.abspath(__file__ + "/../../"), "node_list.json"), "r") as file:
-    node_list = json.load(file)
-    print(node_list)
-# Run the agent
-
-if args.gif:
-    from array2gif import write_gif
-
-    frames = []
-
 class Tester:
+    def __init__(self):
+        # Set seed for all randomness sources
+        utils.seed(args.seed)
+
+        # Set device
+
+        print(f"Device: {device}\n")
+
+        # Load environment
+
+        self.env = utils.make_env(args.env, args.seed, render_mode="human")
+        for _ in range(args.shift):
+            self.env.reset()
+        print("Environment loaded\n")
+
+        # Load agent
+        os.environ["RL_STORAGE"] = "E://Research//Blender-2.91-Test//2.91//scripts//addons//LandscapeTool//PoleReconstruction//StableBaseline3//MiniGrid//storage"
+        model_dir = utils.get_model_dir(args.model)
+        self.agent = utils.Agent(self.env.observation_space, self.env.action_space, model_dir,
+                            argmax=args.argmax, use_memory=args.memory, use_text=args.text)
+        print("Agent loaded\n")
+
     def calculate_optimized_edges(self, node_list):
         def point_to_2D(point, plane_point, v1, v2):
             translated_point = point - plane_point
@@ -102,7 +92,7 @@ class Tester:
                 point = np.array(node[0:3])
 
                 # 取得整個Grid要生長的方向
-                edge_angle = root_node[4]["Scene Object"].rotation_euler[2] / 3.14 * 180.0
+                edge_angle = root_node[5]
 
                 theta = np.radians(edge_angle)
 
@@ -123,23 +113,25 @@ class Tester:
                 projected_point_2d = point_to_2D(projected_point_3d, plane_center_point, up_dir, dir)
 
                 node_list_2d.append(projected_point_2d)
-                
+        
+        print(node_list_2d)
+        
+        self.env.set_target(node_list_2d)
         # Create a window to view the environment
-        env.render()
+        self.env.render()
 
         for episode in range(args.episodes):
-            env.set_target(node_list_2d)
-            obs, _ = env.reset()
+            obs, _ = self.env.reset()
 
             while True:
-                env.render()
+                self.env.render()
                 if args.gif:
-                    frames.append(np.moveaxis(env.get_frame(), 2, 0))
+                    frames.append(np.moveaxis(self.env.get_frame(), 2, 0))
 
-                action = agent.get_action(obs)
-                obs, reward, terminated, truncated, _ = env.step(action)
+                action = self.agent.get_action(obs)
+                obs, reward, terminated, truncated, _ = self.env.step(action)
                 done = terminated | truncated
-                agent.analyze_feedback(reward, done)
+                self.agent.analyze_feedback(reward, done)
 
                 if done:
                     break
@@ -148,3 +140,16 @@ class Tester:
             print("Saving gif... ", end="")
             write_gif(np.array(frames), args.gif+".gif", fps=1/args.pause)
             print("Done.")
+
+with open(os.path.join(os.path.abspath(__file__ + "/../../"), "node_list.json"), "r") as file:
+    node_list = json.load(file)
+    print(node_list)
+
+# Run the agent
+
+if args.gif:
+    from array2gif import write_gif
+
+    frames = []
+
+Tester().calculate_optimized_edges(node_list)
