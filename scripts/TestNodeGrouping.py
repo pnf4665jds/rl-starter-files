@@ -64,6 +64,7 @@ if args.gif:
 env.render()
 
 for episode in range(args.episodes):
+    env.set_target()
     obs, _ = env.reset()
 
     while True:
