@@ -24,7 +24,7 @@ class EdgeEnv(MiniGridEnv):
     def __init__(
         self,
         size=10,
-        agent_start_pos=(1, 1),
+        agent_start_pos=(5, 5),
         agent_start_dir=0,
         max_steps: int | None = None,
         **kwargs,
@@ -43,6 +43,7 @@ class EdgeEnv(MiniGridEnv):
             # Set this to True for maximum speed
             see_through_walls=True,
             max_steps=max_steps,
+            agent_view_size=7,
             **kwargs,
         )
         self.action_space = spaces.Discrete(3)
@@ -57,10 +58,6 @@ class EdgeEnv(MiniGridEnv):
 
         # Generate the surrounding walls
         self.grid.wall_rect(0, 0, width, height)
-
-        # Generate verical separation wall
-        #for i in range(0, height - 1):
-        #self.grid.set(5, i, Wall())
         
         # Place the goal
         goal_i1 = random.randint(1, 4)
@@ -68,12 +65,24 @@ class EdgeEnv(MiniGridEnv):
         self.goal1 = Goal()
         self.grid.set(goal_i1, goal_j1, self.goal1)
 
-        goal_i2 = random.randint(5, 8)
-        goal_j2 = random.randint(5, 8)
+        goal_i2 = random.randint(6, 8)
+        goal_j2 = random.randint(6, 8)
         self.goal2 = Goal()
         self.grid.set(goal_i2, goal_j2, self.goal2)
 
         self.goal_count = 2
+
+        goal_i_list = [goal_i1, goal_i2, 5]
+        goal_j_list = [goal_j1, goal_j2, 5]
+
+        # Generate wall
+        for i in range(1, width - 1):
+            if i in goal_i_list:
+                continue
+            for j in range(1, height - 1):
+                if j in goal_j_list:
+                    continue
+                self.grid.set(i, j, Wall())
 
         # Place the agent
         if self.agent_start_pos is not None:
