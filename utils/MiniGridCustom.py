@@ -45,7 +45,7 @@ class EdgeEnv(MiniGridEnv):
             max_steps=max_steps,
             **kwargs,
         )
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(3)
 
     @staticmethod
     def _gen_mission():
@@ -62,11 +62,18 @@ class EdgeEnv(MiniGridEnv):
         #for i in range(0, height - 1):
         #self.grid.set(5, i, Wall())
         
-        # Place the ball
-        ball_i = random.randint(1, 8)
-        ball_j = random.randint(2, 8)
-        self.target_ball = Ball(COLOR_NAMES[0])
-        self.grid.set(ball_i, ball_j, self.target_ball)
+        # Place the goal
+        goal_i1 = random.randint(1, 4)
+        goal_j1 = random.randint(2, 4)
+        self.goal1 = Goal()
+        self.grid.set(goal_i1, goal_j1, self.goal1)
+
+        goal_i2 = random.randint(5, 8)
+        goal_j2 = random.randint(5, 8)
+        self.goal2 = Goal()
+        self.grid.set(goal_i2, goal_j2, self.goal2)
+
+        self.goal_count = 2
 
         # Place the agent
         if self.agent_start_pos is not None:
@@ -74,8 +81,6 @@ class EdgeEnv(MiniGridEnv):
             self.agent_dir = self.agent_start_dir
         else:
             self.place_agent()
-
-        #self.mission = f"pick ball at ({ball_i}, {ball_j})"
 
     def step(self, action):
         self.step_count += 1
@@ -105,19 +110,10 @@ class EdgeEnv(MiniGridEnv):
             if fwd_cell is None or fwd_cell.can_overlap():
                 self.agent_pos = tuple(fwd_pos)
             if fwd_cell is not None and fwd_cell.type == "goal":
-                terminated = True
-                reward = self._reward()
-
-        # Pick up an object
-        elif action == self.actions.pickup:
-            if fwd_cell and fwd_cell.can_pickup():
-                if self.carrying is None:
-                    self.carrying = fwd_cell
-                    self.carrying.cur_pos = np.array([-1, -1])
-                    self.grid.set(fwd_pos[0], fwd_pos[1], None)
-                    terminated = True
-                    reward = self._reward()
-
+                self.grid.set(fwd_pos[0], fwd_pos[1], None)
+                reward = 0.1
+                self.goal_count -= 1
+                
         else:
             raise ValueError(f"Unknown action: {action}")
 
@@ -126,6 +122,10 @@ class EdgeEnv(MiniGridEnv):
 
         if self.render_mode == "human":
             self.render()
+
+        if self.goal_count <= 0:
+            terminated = True
+            reward = self._reward()
 
         obs = self.gen_obs()
 
