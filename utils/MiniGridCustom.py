@@ -52,6 +52,10 @@ class EdgeEnv(MiniGridEnv):
     def _gen_mission():
         return "grand mission"
 
+    def set_target(self, node_list_2d):
+        print(node_list_2d)
+        pass
+
     def _gen_grid(self, width, height):
         # Create an empty grid
         self.grid = Grid(width, height)
