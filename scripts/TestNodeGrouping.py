@@ -107,6 +107,8 @@ class Tester:
             up_dir = np.array([0, 0, 1])
             dir = rotation_matrix.dot(np.array([1, 0, 0])).tolist()
             n = np.cross(up_dir, dir)
+            min_x = 0
+            min_y = 0
 
             for other_node in root_node_list:
                 if other_node in checked_list:
@@ -122,31 +124,37 @@ class Tester:
 
                 node_list_2d.append(projected_point_2d.tolist() + [other_node[3]])
                 checked_list.append(other_node)
-        return
-        self.env.set_target(node_list_2d)
-        # Create a window to view the environment
-        self.env.render()
+                
+                if projected_point_2d[0] < min_x:
+                    min_x = projected_point_2d[0]
 
-        for episode in range(args.episodes):
-            obs, _ = self.env.reset()
+                if projected_point_2d[1] < min_y:
+                    min_y = projected_point_2d[1] 
+        
+            self.env.set_target(node_list_2d, min_x, min_y)
+            # Create a window to view the environment
+            self.env.render()
 
-            while True:
-                self.env.render()
-                if args.gif:
-                    frames.append(np.moveaxis(self.env.get_frame(), 2, 0))
+            for episode in range(args.episodes):
+                obs, _ = self.env.reset()
 
-                action = self.agent.get_action(obs)
-                obs, reward, terminated, truncated, _ = self.env.step(action)
-                done = terminated | truncated
-                self.agent.analyze_feedback(reward, done)
+                while True:
+                    self.env.render()
+                    if args.gif:
+                        frames.append(np.moveaxis(self.env.get_frame(), 2, 0))
 
-                if done:
-                    break
+                    action = self.agent.get_action(obs)
+                    obs, reward, terminated, truncated, _ = self.env.step(action)
+                    done = terminated | truncated
+                    self.agent.analyze_feedback(reward, done)
 
-        if args.gif:
-            print("Saving gif... ", end="")
-            write_gif(np.array(frames), args.gif+".gif", fps=1/args.pause)
-            print("Done.")
+                    if done:
+                        break
+
+            if args.gif:
+                print("Saving gif... ", end="")
+                write_gif(np.array(frames), args.gif+".gif", fps=1/args.pause)
+                print("Done.")
 
 with open(os.path.join(os.path.abspath(__file__ + "/../../"), "node_list.json"), "r") as file:
     node_list = json.load(file)

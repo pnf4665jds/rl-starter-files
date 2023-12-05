@@ -48,14 +48,20 @@ class EdgeEnv(MiniGridEnv):
         )
         self.action_space = spaces.Discrete(3)
         self.node_list_2d = None
+        self.offset_x = 0
+        self.offset_y = 0
+        self.root_pos = None
 
     @staticmethod
     def _gen_mission():
         return "grand mission"
 
-    def set_target(self, node_list_2d, root_pos):
+    def set_target(self, node_list_2d, min_x, min_y,):
         self.node_list_2d = node_list_2d
-        self.root_pos = root_pos
+        self.offset_x = abs(min_x)
+        self.offset_y = abs(min_y)
+        print(f"Offset:{self.offset_x}, {self.offset_y}")
+        self.root_pos = [round(0 + self.offset_x * 2) + 1, 39 - (round(0 + self.offset_y * 2) + 1)]
 
     def _gen_grid(self, width, height):
         # Create an empty grid
@@ -65,16 +71,18 @@ class EdgeEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, width, height)
         
         if self.node_list_2d == None:
-            sample_points = [[2, 10], [26, 10], [14, 20]]
+            sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 3]]
             idx = random.randint(0, 2)
             self.root_pos = sample_points[idx]
+            self.root_pos[0] = round(self.root_pos[0] * 2) + 1
+            self.root_pos[1] = 39 - (round(self.root_pos[1] * 2) + 1)
             self.node_list_2d = []
-            self.node_list_2d.append([2, 15, 9])
-            self.node_list_2d.append([5, 15, 0])
-            self.node_list_2d.append([12, 15, 9])
-            self.node_list_2d.append([9, 15, 0])
-            self.node_list_2d.append([7, 10, 1])
-            self.node_list_2d.append([7, 8, 10])
+            self.node_list_2d.append([1, 7.5, 9])
+            self.node_list_2d.append([2.5, 7.5, 0])
+            self.node_list_2d.append([6, 7.5, 9])
+            self.node_list_2d.append([4.5, 7.5, 0])
+            self.node_list_2d.append([3.5, 5, 1])
+            self.node_list_2d.append([3.5, 4, 10])
 
         for i in range(1, height - 1):
             for j in range(1, width - 1):
@@ -82,8 +90,8 @@ class EdgeEnv(MiniGridEnv):
 
         for node in self.node_list_2d:
             # Place the goal
-            goal_x = round(node[0] * 2)
-            goal_y = 40-(round(node[1] * 2))
+            goal_x = round((node[0] + self.offset_x) * 2) + 1
+            goal_y = 39-(round((node[1] + self.offset_y) * 2) + 1)
             category = node[2]
             self.goal = Goal()
             self.grid.set(goal_x, goal_y, self.goal)
