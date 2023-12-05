@@ -51,6 +51,9 @@ class EdgeEnv(MiniGridEnv):
         self.offset_x = 0
         self.offset_y = 0
         self.root_pos = None
+        self.test_idx = 0
+
+        self.sample_parameters()
 
     @staticmethod
     def _gen_mission():
@@ -58,16 +61,28 @@ class EdgeEnv(MiniGridEnv):
 
     def set_target(self, node_list_2d, min_x, min_y,):
         self.node_list_2d = node_list_2d
-        self.offset_x = abs(min_x)
-        self.offset_y = abs(min_y)
+        self.offset_x = abs(min_x) + 1
+        self.offset_y = abs(min_y) + 1
         print(f"Offset:{self.offset_x}, {self.offset_y}")
         self.root_pos = [self.get_shift_x(self.offset_x), self.get_shift_y(self.offset_y)]
 
-    def get_shift_x(self, old_x):
-        return round(old_x * 2) + 1
+    def get_shift_x(self, old_x, interval=0.5):
+        return round(old_x / interval) + 1
 
-    def get_shift_y(self, old_y):
-        return 39 - (round(old_y * 2) + 1)
+    def get_shift_y(self, old_y, interval=0.5):
+        return 39 - (round(old_y / interval) + 1)
+
+    def sample_parameters(self):
+        import itertools
+        parameter_list = [
+            [0, 1],
+            [-1, 0, 1],
+            [-2, -1, 0],
+            [-1, 0, 1],
+            [-2, -1, 0]
+        ]
+
+        self.all_parameter_list = [c for c in itertools.product(*parameter_list)]
 
     def _gen_grid(self, width, height):
         # Create an empty grid
@@ -77,18 +92,34 @@ class EdgeEnv(MiniGridEnv):
         self.grid.wall_rect(0, 0, width, height)
         
         if self.node_list_2d == None:
-            sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 3]]
-            idx = random.randint(0, 2)
-            self.root_pos = sample_points[idx]
-            self.root_pos[0] = self.get_shift_x(self.root_pos[0])
-            self.root_pos[1] = self.get_shift_y(self.root_pos[1])
-            self.node_list_2d = []
-            self.node_list_2d.append([1, 7.5, 9])
-            self.node_list_2d.append([2.5, 7.5, 0])
-            self.node_list_2d.append([6, 7.5, 9])
-            self.node_list_2d.append([4.5, 7.5, 0])
-            self.node_list_2d.append([3.5, 5, 1])
-            self.node_list_2d.append([3.5, 4, 10])
+            p = self.all_parameter_list[self.test_idx]
+            if p[0] == 0:
+                sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 2]]
+                idx = random.randint(0, 2)
+                self.root_pos = sample_points[idx]
+                self.root_pos[0] = self.get_shift_x(self.root_pos[0])
+                self.root_pos[1] = self.get_shift_y(self.root_pos[1])
+                self.node_list_2d = []
+                self.node_list_2d.append([1, 7.5, 9])
+                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
+                self.node_list_2d.append([6, 7.5, 9])
+                self.node_list_2d.append([5 + p[2] * 0.5, 7.5, 0])
+                self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
+                self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
+            elif p[0] == 1:
+                sample_points = [[0.5, 7.5], [3.5, 2]]
+                idx = random.randint(0, 1)
+                self.root_pos = sample_points[idx]
+                self.root_pos[0] = self.get_shift_x(self.root_pos[0])
+                self.root_pos[1] = self.get_shift_y(self.root_pos[1])
+                self.node_list_2d = []
+                self.node_list_2d.append([1, 7.5, 9])
+                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
+                self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
+                self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
+            self.test_idx += 1
+            if self.test_idx >= len(self.all_parameter_list):
+                self.test_idx = 0
 
         for i in range(1, height - 1):
             for j in range(1, width - 1):
