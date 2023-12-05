@@ -81,41 +81,48 @@ class Tester:
         # 尋找Root Node
         root_priority_list = [9, 0, 1, 10, 11]  # 按照指定類型來排序 node list
         root_node_list = sorted(node_list, key=lambda x: root_priority_list.index(x[3]) if x[3] in root_priority_list else float('inf'))
+        checked_list = []
 
         for root_node in root_node_list:
+            if root_node in checked_list:
+                continue
+
+            checked_list.append(root_node)
             plane_center_point = np.array(root_node[0:3])
             node_list_2d = []
-            for node in node_list:
-                if node[4] == root_node[4]:
+            print("Root:", plane_center_point)
+            # 取得整個Grid要生長的方向
+            edge_angle = root_node[5]
+
+            theta = np.radians(edge_angle)
+
+            # 創建旋轉矩陣
+            rotation_matrix = np.array([
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1]
+            ])
+
+            # 進行座標旋轉
+            up_dir = np.array([0, 0, 1])
+            dir = rotation_matrix.dot(np.array([1, 0, 0])).tolist()
+            n = np.cross(up_dir, dir)
+
+            for other_node in root_node_list:
+                if other_node in checked_list:
                     continue
 
-                point = np.array(node[0:3])
-
-                # 取得整個Grid要生長的方向
-                edge_angle = root_node[5]
-
-                theta = np.radians(edge_angle)
-
-                # 創建旋轉矩陣
-                rotation_matrix = np.array([
-                    [np.cos(theta), -np.sin(theta), 0],
-                    [np.sin(theta), np.cos(theta), 0],
-                    [0, 0, 1]
-                ])
-
-                # 進行座標旋轉
-                up_dir = np.array([0, 0, 1])
-                dir = rotation_matrix.dot(np.array([1, 0, 0])).tolist()
-                n = np.cross(up_dir, dir)
+                point = np.array(other_node[0:3])
 
                 # 投影到平面
                 projected_point_3d = project_point_to_plane(point, plane_center_point, n)
-                projected_point_2d = point_to_2D(projected_point_3d, plane_center_point, up_dir, dir)
+                print("3D:", projected_point_3d)
+                projected_point_2d = point_to_2D(projected_point_3d, plane_center_point, dir, up_dir)
+                print("2D:", projected_point_2d)
 
-                node_list_2d.append(projected_point_2d)
-        
-        print(node_list_2d)
-        
+                node_list_2d.append(projected_point_2d.tolist() + [other_node[3]])
+                checked_list.append(other_node)
+        return
         self.env.set_target(node_list_2d)
         # Create a window to view the environment
         self.env.render()

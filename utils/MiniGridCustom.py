@@ -23,7 +23,7 @@ gym.register(id='MyEnv-v0', entry_point='utils:EdgeEnv')
 class EdgeEnv(MiniGridEnv):
     def __init__(
         self,
-        size=12,
+        size=20,
         agent_start_pos=(5, 5),
         agent_start_dir=0,
         max_steps: int | None = None,
@@ -71,28 +71,35 @@ class EdgeEnv(MiniGridEnv):
         goal_i_list = []
         goal_j_list = []
 
+        for i in range(1, height - 1):
+            for j in range(1, width - 1):
+                self.grid.set(j, i, Wall())
+
         for node in self.node_list_2d:
             # Place the goal
-            goal_i = round(node[0]) + 1
-            goal_j = round(node[1]) + 1
+            goal_i = 20-(round(node[0] * 2))
+            goal_j = round(node[1] * 2) + 10
+            category = node[2]
             self.goal = Goal()
-            self.grid.set(goal_i, goal_j, self.goal)
+            self.grid.set(goal_j, goal_i, self.goal)
             goal_i_list.append(goal_i)
             goal_j_list.append(goal_j)
+            
+            # Generate wall
+            for i in range(1, height - 1):
+                if i == goal_i or (category == 9) or self.grid.get(goal_j, i).type == 'goal':
+                    continue
+                self.grid.set(goal_j, i, Floor(color="grey"))
+            for j in range(1, width - 1):
+                if j == goal_j or (category == 10) or self.grid.get(j, goal_i).type == 'goal':
+                    continue
+                self.grid.set(j, goal_i, Floor(color="grey"))
 
         self.goal_count = len(goal_i_list)
 
-        # Generate wall
-        for i in range(1, width - 1):
-            if i in goal_i_list:
-                continue
-            for j in range(1, height - 1):
-                if j in goal_j_list:
-                    continue
-                self.grid.set(i, j, Wall())
-
+        self.grid.set(goal_j_list[0], goal_i_list[0], None)
         self.agent_dir = 0
-        self.agent_pos = (1, 1)
+        self.agent_pos = (goal_j_list[0], goal_i_list[0])
 
     def step(self, action):
         self.step_count += 1
