@@ -52,6 +52,7 @@ class EdgeEnv(MiniGridEnv):
         self.offset_y = 0
         self.root_pos = None
         self.test_idx = 0
+        self.visited_array = None
 
         self.sample_parameters()
 
@@ -63,14 +64,13 @@ class EdgeEnv(MiniGridEnv):
         self.node_list_2d = node_list_2d
         self.offset_x = abs(min_x) + 1
         self.offset_y = abs(min_y) + 1
-        print(f"Offset:{self.offset_x}, {self.offset_y}")
         self.root_pos = [self.get_shift_x(self.offset_x), self.get_shift_y(self.offset_y)]
 
     def get_shift_x(self, old_x, interval=0.5):
         return round(old_x / interval) + 1
 
     def get_shift_y(self, old_y, interval=0.5):
-        return 39 - (round(old_y / interval) + 1)
+        return self.height - 1 - (round(old_y / interval) + 1)
 
     def sample_parameters(self):
         import itertools
@@ -149,6 +149,10 @@ class EdgeEnv(MiniGridEnv):
         self.agent_pos = (self.root_pos[0], self.root_pos[1])
         self.node_list_2d = None
 
+        # 紀錄Agent走的路徑
+        self.visited_array = np.zeros(shape=(self.height, self.width))
+        self.visited_array[self.root_pos[0]][self.root_pos[1]] = 1
+
     def step(self, action):
         self.step_count += 1
 
@@ -177,6 +181,7 @@ class EdgeEnv(MiniGridEnv):
             if fwd_cell is None or fwd_cell.can_overlap():
                 self.agent_pos = tuple(fwd_pos)
                 self.grid.set(fwd_pos[0], fwd_pos[1], Floor(color="grey"))
+                self.visited_array[fwd_pos[0]][fwd_pos[1]] = 1
             if fwd_cell is not None and fwd_cell.type == "goal":
                 reward = self._reward()
                 self.goal_count -= 1

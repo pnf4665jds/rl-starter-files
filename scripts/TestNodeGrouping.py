@@ -59,6 +59,50 @@ class Tester:
                             argmax=args.argmax, use_memory=args.memory, use_text=args.text)
         print("Agent loaded\n")
 
+    def dfs(self, agent_visited_array, x, y, visited, direction, continuous_points):
+        rows, cols = agent_visited_array.shape
+        print(f"({x}, {y})")
+        if x < 0 or x >= rows or y < 0 or y >= cols or agent_visited_array[x][y] == 0 or visited[x][y]:
+            return
+
+        # 標記當前點為visited
+        visited[x][y] = True
+        continuous_points.append((x, y))
+
+        # 檢查並繼續沿著目前方向探索
+        if direction == 'right':
+            self.dfs(agent_visited_array, x + 1, y, visited, direction, continuous_points)
+        elif direction == 'left':
+            self.dfs(agent_visited_array, x - 1, y, visited, direction, continuous_points)
+        elif direction == 'up':
+            self.dfs(agent_visited_array, x, y - 1, visited, direction, continuous_points)
+        elif direction == 'down':
+            self.dfs(agent_visited_array, x, y + 1, visited, direction, continuous_points)
+
+        # 檢查是否有新分支，如果有，從這個新分支開始新的探索
+        for dx, dy, new_direction in [(0, -1 ,'up'), (0, 1, 'down'), (-1, 0, 'left'), (1, 0, 'right')]:
+            new_x, new_y = x + dx, y + dy
+            if 0 <= new_x < rows and 0 <= new_y < cols and agent_visited_array[new_x][new_y] == 1 and not visited[new_x][new_y]:
+                new_continuous_points = [(x, y)]
+                self.dfs(agent_visited_array, new_x, new_y, visited, new_direction, new_continuous_points)
+                if len(new_continuous_points) > 1:
+                    print(f"Start:({new_continuous_points[0][0]}, {new_continuous_points[0][1]}), End:({new_continuous_points[-1][0]}, {new_continuous_points[-1][1]})")
+
+    def explore_ones(self, agent_visited_array, start_x, start_y):
+        rows, cols = agent_visited_array.shape
+        visited = [[False for _ in range(cols)] for _ in range(rows)]
+        continuous_points = []
+
+        # 水平和垂直方向上都嘗試一次
+        self.dfs(agent_visited_array, start_x, start_y, visited, 'right', continuous_points)
+        if len(continuous_points) > 1:
+            print(f"Start:({continuous_points[0][0]}, {continuous_points[0][1]}), End:({continuous_points[-1][0]}, {continuous_points[-1][1]})")
+        continuous_points.clear()
+
+        self.dfs(agent_visited_array, start_x, start_y, visited, 'down', continuous_points)
+        if len(continuous_points) > 1:
+            print(f"Start:({continuous_points[0][0]}, {continuous_points[0][1]}), End:({continuous_points[-1][0]}, {continuous_points[-1][1]})")
+
     def calculate_optimized_edges(self, node_list):
         def point_to_2D(point, plane_point, v1, v2):
             translated_point = point - plane_point
@@ -147,8 +191,9 @@ class Tester:
                     obs, reward, terminated, truncated, _ = self.env.step(action)
                     done = terminated | truncated
                     self.agent.analyze_feedback(reward, done)
-
+                    
                     if done:
+                        self.explore_ones(self.env.visited_array, self.env.root_pos[0], self.env.root_pos[1])
                         break
 
             if args.gif:
