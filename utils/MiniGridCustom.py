@@ -61,7 +61,13 @@ class EdgeEnv(MiniGridEnv):
         self.offset_x = abs(min_x)
         self.offset_y = abs(min_y)
         print(f"Offset:{self.offset_x}, {self.offset_y}")
-        self.root_pos = [round(0 + self.offset_x * 2) + 1, 39 - (round(0 + self.offset_y * 2) + 1)]
+        self.root_pos = [self.get_shift_x(self.offset_x), self.get_shift_y(self.offset_y)]
+
+    def get_shift_x(self, old_x):
+        return round(old_x * 2) + 1
+
+    def get_shift_y(self, old_y):
+        return 39 - (round(old_y * 2) + 1)
 
     def _gen_grid(self, width, height):
         # Create an empty grid
@@ -74,8 +80,8 @@ class EdgeEnv(MiniGridEnv):
             sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 3]]
             idx = random.randint(0, 2)
             self.root_pos = sample_points[idx]
-            self.root_pos[0] = round(self.root_pos[0] * 2) + 1
-            self.root_pos[1] = 39 - (round(self.root_pos[1] * 2) + 1)
+            self.root_pos[0] = self.get_shift_x(self.root_pos[0])
+            self.root_pos[1] = self.get_shift_y(self.root_pos[1])
             self.node_list_2d = []
             self.node_list_2d.append([1, 7.5, 9])
             self.node_list_2d.append([2.5, 7.5, 0])
@@ -90,8 +96,8 @@ class EdgeEnv(MiniGridEnv):
 
         for node in self.node_list_2d:
             # Place the goal
-            goal_x = round((node[0] + self.offset_x) * 2) + 1
-            goal_y = 39-(round((node[1] + self.offset_y) * 2) + 1)
+            goal_x = self.get_shift_x(node[0] + self.offset_x)
+            goal_y = self.get_shift_y(node[1] + self.offset_y)
             category = node[2]
             self.goal = Goal()
             self.grid.set(goal_x, goal_y, self.goal)
