@@ -53,6 +53,7 @@ class EdgeEnv(MiniGridEnv):
         self.root_pos = None
         self.test_idx = 0
         self.visited_array = None
+        self.target_obejcts = None  # 紀錄元件在Grid的對應座標
 
         self.sample_parameters()
 
@@ -125,6 +126,7 @@ class EdgeEnv(MiniGridEnv):
             for j in range(1, width - 1):
                 self.grid.set(j, i, Wall())
 
+        self.target_obejcts = []
         for node in self.node_list_2d:
             # Place the goal
             goal_x = self.get_shift_x(node[0] + self.offset_x)
@@ -132,6 +134,8 @@ class EdgeEnv(MiniGridEnv):
             category = node[2]
             self.goal = Goal()
             self.grid.set(goal_x, goal_y, self.goal)
+            if len(node) >= 4:
+                self.target_obejcts.append((goal_x, goal_y, node[3]))
          
             # Generate wall
             for i in range(1, height - 1):
