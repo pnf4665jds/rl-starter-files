@@ -111,9 +111,15 @@ class Tester:
         print("-----------------------------------")
         self.dfs(agent_visited_array, start_x, start_y, visited, 'left', edge, all_comps, result_edges)
         if len(edge['Pts']) > 1:
-                    result_edges.append(edge)
-        for e in result_edges:
-            print(e)
+            result_edges.append(edge)
+
+        result = {
+            'Root Pos': [start_x, start_y],
+            'Result Edges': result_edges
+        }
+
+        with open(os.path.join(os.path.abspath(__file__ + "/../../"), "result.json"), "w") as file:
+            json.dump(result, file)
         #edge['Pts'].clear()
 
     def calculate_optimized_edges(self, node_list):
