@@ -43,7 +43,7 @@ class EdgeEnv(MiniGridEnv):
             # Set this to True for maximum speed
             see_through_walls=True,
             max_steps=max_steps,
-            agent_view_size=17,
+            agent_view_size=25,
             **kwargs,
         )
         self.action_space = spaces.Discrete(3)
@@ -76,11 +76,12 @@ class EdgeEnv(MiniGridEnv):
     def sample_parameters(self):
         import itertools
         parameter_list = [
-            [0, 1],
+            [0, 1, 2], # 起點
             [-1, 0, 1],
             [-2, -1, 0],
             [-1, 0, 1],
-            [-2, -1, 0]
+            [-2, -1, 0],
+            [0, 1, 2], # 類型
         ]
 
         self.all_parameter_list = [c for c in itertools.product(*parameter_list)]
@@ -94,9 +95,9 @@ class EdgeEnv(MiniGridEnv):
         
         if self.node_list_2d == None:
             p = self.all_parameter_list[self.test_idx]
-            if p[0] == 0:
+            if p[5] == 0:   # 雙桿紅綠燈
                 sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 2]]
-                idx = random.randint(0, 2)
+                idx = p[0]
                 self.root_pos = sample_points[idx]
                 self.root_pos[0] = self.get_shift_x(self.root_pos[0])
                 self.root_pos[1] = self.get_shift_y(self.root_pos[1])
@@ -107,9 +108,9 @@ class EdgeEnv(MiniGridEnv):
                 self.node_list_2d.append([5 + p[2] * 0.5, 7.5, 0])
                 self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
                 self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
-            elif p[0] == 1:
-                sample_points = [[0.5, 7.5], [3.5, 2]]
-                idx = random.randint(0, 1)
+            elif p[5] == 1: # 單桿紅綠燈
+                sample_points = [[0.5, 7.5], [3.5, 2], [3.5, 7.5]]
+                idx = p[0]
                 self.root_pos = sample_points[idx]
                 self.root_pos[0] = self.get_shift_x(self.root_pos[0])
                 self.root_pos[1] = self.get_shift_y(self.root_pos[1])
@@ -118,6 +119,18 @@ class EdgeEnv(MiniGridEnv):
                 self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
                 self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
                 self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
+            elif p[5] == 2:
+                sample_points = [[1, 2], [7, 2], [3, 7.5]]
+                idx = p[0]
+                self.root_pos = sample_points[idx]
+                self.root_pos[0] = self.get_shift_x(self.root_pos[0])
+                self.root_pos[1] = self.get_shift_y(self.root_pos[1])
+                self.node_list_2d = []
+                self.node_list_2d.append([1, 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([7, 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
+                self.node_list_2d.append([4 + p[3] * 0.5, 7.5, 1])
+                self.node_list_2d.append([6 + p[1] * 0.5, 7.5, 0])
             self.test_idx += 1
             if self.test_idx >= len(self.all_parameter_list):
                 self.test_idx = 0

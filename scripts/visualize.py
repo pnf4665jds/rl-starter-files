@@ -54,17 +54,15 @@ agent = utils.Agent(env.observation_space, env.action_space, model_dir,
 print("Agent loaded\n")
 
 # Run the agent
-
-if args.gif:
-    from array2gif import write_gif
-
-    frames = []
+from array2gif import write_gif
 
 # Create a window to view the environment
 env.render()
 
 for episode in range(args.episodes):
     obs, _ = env.reset()
+
+    frames = []
 
     while True:
         env.render()
@@ -79,7 +77,7 @@ for episode in range(args.episodes):
         if done:
             break
 
-if args.gif:
-    print("Saving gif... ", end="")
-    write_gif(numpy.array(frames), args.gif+".gif", fps=1/args.pause)
-    print("Done.")
+    if args.gif:
+        print("Saving gif... ", end="")
+        write_gif(numpy.array(frames), "gifs/" + args.gif+str(episode)+".gif", fps=1/args.pause)
+        print("Done.")
