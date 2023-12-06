@@ -54,7 +54,8 @@ agent = utils.Agent(env.observation_space, env.action_space, model_dir,
 print("Agent loaded\n")
 
 # Run the agent
-from array2gif import write_gif
+from PIL import Image
+import numpy as np
 
 # Create a window to view the environment
 env.render()
@@ -67,7 +68,7 @@ for episode in range(args.episodes):
     while True:
         env.render()
         if args.gif:
-            frames.append(numpy.moveaxis(env.get_frame(), 2, 0))
+            frames.append(env.get_frame().astype(np.uint8))
 
         action = agent.get_action(obs)
         obs, reward, terminated, truncated, _ = env.step(action)
@@ -79,5 +80,7 @@ for episode in range(args.episodes):
 
     if args.gif:
         print("Saving gif... ", end="")
-        write_gif(numpy.array(frames), "gifs/" + args.gif+str(episode)+".gif", fps=1/args.pause)
+        imgs = [Image.fromarray(img).quantize(method=Image.MEDIANCUT) for img in frames]
+        # duration is the number of milliseconds between frames
+        imgs[0].save("gifs/" + args.gif+str(episode)+".gif", save_all=True, append_images=imgs[1:], duration=200, loop=0)
         print("Done.")

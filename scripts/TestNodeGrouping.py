@@ -9,6 +9,7 @@ sys.path.insert(0,'E://Research//Blender-2.91-Test//2.91//scripts//addons//Lands
 
 import utils
 from utils import device
+from PIL import Image
 
 # Parse arguments
 
@@ -25,7 +26,7 @@ parser.add_argument("--argmax", action="store_true", default=False,
                     help="select the action with highest probability (default: False)")
 parser.add_argument("--pause", type=float, default=0.1,
                     help="pause duration between two consequent actions of the agent (default: 0.1)")
-parser.add_argument("--gif", type=str, default=None,
+parser.add_argument("--gif", type=str, default="test_result",
                     help="store output as gif with the given filename")
 parser.add_argument("--episodes", type=int, default=1,
                     help="number of episodes to visualize")
@@ -201,11 +202,11 @@ class Tester:
 
             for episode in range(args.episodes):
                 obs, _ = self.env.reset()
-
+                frames = []
                 while True:
                     self.env.render()
                     if args.gif:
-                        frames.append(np.moveaxis(self.env.get_frame(), 2, 0))
+                        frames.append(self.env.get_frame().astype(np.uint8))
 
                     action = self.agent.get_action(obs)
                     obs, reward, terminated, truncated, _ = self.env.step(action)
@@ -226,7 +227,9 @@ class Tester:
 
             if args.gif:
                 print("Saving gif... ", end="")
-                write_gif(np.array(frames), args.gif+".gif", fps=1/args.pause)
+                imgs = [Image.fromarray(img).quantize(method=Image.MEDIANCUT) for img in frames]
+                # duration is the number of milliseconds between frames
+                imgs[0].save(os.path.join(os.path.abspath(__file__ + "/../../gifs/"), args.gif + f"{episode}.gif"), save_all=True, append_images=imgs[1:], duration=200, loop=0)
                 print("Done.")
 
 with open(os.path.join(os.path.abspath(__file__ + "/../../"), "node_list.json"), "r") as file:
