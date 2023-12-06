@@ -96,7 +96,7 @@ class Tester:
                 if len(new_edge['Pts']) > 1:
                     result_edges.append(new_edge)
 
-    def explore_ones(self, agent_visited_array, start_x, start_y, all_comps):
+    def explore_ones(self, agent_visited_array, start_x, start_y, offset_x, offset_y, all_comps):
         rows, cols = agent_visited_array.shape
         visited = [[False for _ in range(cols)] for _ in range(rows)]
         edge = {
@@ -115,6 +115,7 @@ class Tester:
 
         result = {
             'Root Pos': [start_x, start_y],
+            'Offset': [offset_x, offset_y],
             'Result Edges': result_edges
         }
 
@@ -214,7 +215,13 @@ class Tester:
                     if done:
                         target_objects = self.env.target_obejcts.copy()
                         target_objects.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
-                        self.explore_ones(self.env.visited_array, self.env.root_pos[0], self.env.root_pos[1], target_objects)
+                        self.explore_ones(
+                            self.env.visited_array, 
+                            self.env.root_pos[0], 
+                            self.env.root_pos[1], 
+                            self.env.offset_x,
+                            self.env.offset_y,
+                            target_objects)
                         break
 
             if args.gif:
