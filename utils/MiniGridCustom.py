@@ -261,8 +261,9 @@ class EdgeEnv(MiniGridEnv):
             if fwd_cell.can_overlap():
                 current_pos = np.array(self.agent_pos)
                 while True:
-                    if self.grid.get(*current_pos).type == "goal":
-                        self.grid.set(current_pos[0], current_pos[1], Floor(color="grey"))
+                    current_cell = self.grid.get(*current_pos)
+                    if current_cell.type == "goal":
+                        self.grid.set(current_pos[0], current_pos[1], Floor(color="blue"))
                         reward = self._reward()
                         self.goal_count -= 1
                     if self.visited_array[current_pos[0]][current_pos[1]] != 1:

@@ -62,7 +62,7 @@ class Tester:
 
     def dfs(self, agent_visited_array, x, y, visited, direction, edge, all_comps, result_edges):
         rows, cols = agent_visited_array.shape
-        if x < 0 or x >= rows or y < 0 or y >= cols or agent_visited_array[x][y] == 0 or visited[x][y]:
+        if (x < 0 or x >= rows) or (y < 0 or y >= cols) or agent_visited_array[x][y] == 0 or visited[x][y]:
             return
 
         # 標記當前點為visited
@@ -88,7 +88,7 @@ class Tester:
         # 檢查是否有新分支，如果有，從這個新分支開始新的探索
         for dx, dy, new_direction in [(0, -1 ,'up'), (0, 1, 'down'), (-1, 0, 'left'), (1, 0, 'right')]:
             new_x, new_y = x + dx, y + dy
-            if 0 <= new_x < rows and 0 <= new_y < cols and agent_visited_array[new_x][new_y] == 1 and not visited[new_x][new_y]:
+            if (0 <= new_x < rows) and (0 <= new_y < cols) and agent_visited_array[new_x][new_y] == 1 and not visited[new_x][new_y]:
                 new_edge = {
                     'Pts': [(x, y)],
                     'Comps': []
@@ -100,19 +100,26 @@ class Tester:
     def explore_ones(self, agent_visited_array, start_x, start_y, offset_x, offset_y, all_comps):
         rows, cols = agent_visited_array.shape
         visited = [[False for _ in range(cols)] for _ in range(rows)]
-        edge = {
-            'Pts': [],
-            'Comps': []
-        }
+
+        root_edges = [{'Pts': [], 'Comps': []} for i in range(4)]
 
         result_edges = []
         for comp in all_comps:
             print(comp)
 
+        root_comp = all_comps[-1]
+        visited[start_x][start_y] = True
+
         print("-----------------------------------")
-        self.dfs(agent_visited_array, start_x, start_y, visited, 'left', edge, all_comps, result_edges)
-        if len(edge['Pts']) > 1:
-            result_edges.append(edge)
+        self.dfs(agent_visited_array, start_x - 1, start_y, visited, 'left', root_edges[0], all_comps, result_edges)
+        self.dfs(agent_visited_array, start_x + 1, start_y, visited, 'right', root_edges[1], all_comps, result_edges)
+        self.dfs(agent_visited_array, start_x, start_y - 1, visited, 'up', root_edges[2], all_comps, result_edges)
+        self.dfs(agent_visited_array, start_x, start_y + 1, visited, 'down', root_edges[3], all_comps, result_edges)
+
+        for root_edge in root_edges:
+            if len(root_edge['Pts']) > 1:
+                root_edge['Comps'].append(root_comp)
+                result_edges.append(root_edge)
 
         result = {
             'Root Pos': [start_x, start_y],
@@ -213,8 +220,9 @@ class Tester:
                     self.agent.analyze_feedback(reward, done)
                     
                     if done:
-                        target_objects = self.env.target_obejcts.copy()
-                        target_objects.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
+                        all_comps = self.env.target_obejcts.copy()
+                        # 把Root元件加入List
+                        all_comps.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
                         print("Visited Array")
                         np.set_printoptions(linewidth=200)
                         for e in self.env.visited_array:
@@ -225,7 +233,7 @@ class Tester:
                             self.env.root_pos[1], 
                             self.env.offset_x,
                             self.env.offset_y,
-                            target_objects)
+                            all_comps)
                         break
 
             if args.gif:
