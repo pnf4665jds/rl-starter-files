@@ -15,6 +15,7 @@ from minigrid.minigrid_env import MiniGridEnv
 
 import random
 import numpy as np
+import os
 
 from gymnasium import spaces
 import gymnasium as gym
@@ -35,7 +36,7 @@ class EdgeEnv(MiniGridEnv):
         mission_space = MissionSpace(mission_func=self._gen_mission)
 
         if max_steps is None:
-            max_steps = 300
+            max_steps = 400
 
         super().__init__(
             mission_space=mission_space,
@@ -54,6 +55,8 @@ class EdgeEnv(MiniGridEnv):
         self.test_idx = 0
         self.visited_array = None
         self.target_obejcts = None  # 紀錄元件在Grid的對應座標
+        self.visited_count = 0
+        self.all_visited_count = 0
 
         self.sample_parameters()
 
@@ -81,7 +84,7 @@ class EdgeEnv(MiniGridEnv):
             [-2, -1, 0],
             [-1, 0, 1],
             [-2, -1, 0],
-            [0, 1, 2], # 類型
+            [2], # 類型
         ]
 
         self.all_parameter_list = [c for c in itertools.product(*parameter_list)]
@@ -96,41 +99,41 @@ class EdgeEnv(MiniGridEnv):
         if self.node_list_2d == None:
             p = self.all_parameter_list[self.test_idx]
             if p[5] == 0:   # 雙桿紅綠燈
-                sample_points = [[0.5, 7.5], [6.5, 7.5], [3.5, 2]]
+                sample_points = [[0.5, 7.5], [6 - p[2] + 0.5, 7.5], [3.5 - p[2], 4 + p[4] * 0.5 - 0.5]]
                 idx = p[0]
                 self.root_pos = sample_points[idx]
                 self.root_pos[0] = self.get_shift_x(self.root_pos[0])
                 self.root_pos[1] = self.get_shift_y(self.root_pos[1])
                 self.node_list_2d = []
                 self.node_list_2d.append([1, 7.5, 9])
-                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
-                self.node_list_2d.append([6, 7.5, 9])
-                self.node_list_2d.append([5 + p[2] * 0.5, 7.5, 0])
-                self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
-                self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([6 - p[2], 7.5, 9])
+                self.node_list_2d.append([5 + p[2] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([3.5 - p[2], 5 + p[3] * 0.5, 1])
+                self.node_list_2d.append([3.5 - p[2], 4 + p[4] * 0.5, 10])
             elif p[5] == 1: # 單桿紅綠燈
-                sample_points = [[0.5, 7.5], [3.5, 2], [3.5, 7.5]]
+                sample_points = [[0.5, 7.5], [3.5 - p[2], 4 + p[4] * 0.5 - 0.5], [3.5 - p[2], 7.5]]
                 idx = p[0]
                 self.root_pos = sample_points[idx]
                 self.root_pos[0] = self.get_shift_x(self.root_pos[0])
                 self.root_pos[1] = self.get_shift_y(self.root_pos[1])
                 self.node_list_2d = []
-                self.node_list_2d.append([1, 7.5, 9])
-                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
-                self.node_list_2d.append([3.5, 5 + p[3] * 0.5, 1])
-                self.node_list_2d.append([3.5, 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([1 - p[2], 7.5, 9])
+                self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([3.5 - p[2], 5 + p[3] * 0.5, 1])
+                self.node_list_2d.append([3.5 - p[2], 4 + p[4] * 0.5, 10])
             elif p[5] == 2:
-                sample_points = [[1, 2], [7, 2], [3, 7.5]]
+                sample_points = [[2 + p[1] * 0.5 - p[2] + 0.5, 7.5], [4 + p[3] * 0.5 - p[2] + 0.5, 7.5], [7 - p[2], 4 + p[4] * 0.5 - 0.5]]
                 idx = p[0]
                 self.root_pos = sample_points[idx]
                 self.root_pos[0] = self.get_shift_x(self.root_pos[0])
                 self.root_pos[1] = self.get_shift_y(self.root_pos[1])
                 self.node_list_2d = []
                 self.node_list_2d.append([1, 4 + p[4] * 0.5, 10])
-                self.node_list_2d.append([7, 4 + p[4] * 0.5, 10])
-                self.node_list_2d.append([2 + p[1] * 0.5, 7.5, 0])
-                self.node_list_2d.append([4 + p[3] * 0.5, 7.5, 1])
-                self.node_list_2d.append([6 + p[1] * 0.5, 7.5, 0])
+                self.node_list_2d.append([7 - p[2], 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([4 + p[3] * 0.5 - p[2], 7.5, 1])
+                self.node_list_2d.append([6 + p[1] * 0.5 - p[2], 7.5, 0])
             self.test_idx += 1
             if self.test_idx >= len(self.all_parameter_list):
                 self.test_idx = 0
@@ -168,7 +171,64 @@ class EdgeEnv(MiniGridEnv):
 
         # 紀錄Agent走的路徑
         self.visited_array = np.zeros(shape=(self.height, self.width))
-        self.visited_array[self.root_pos[0]][self.root_pos[1]] = 1
+
+        self.visited_count = 0
+        self.all_visited_count = 0
+
+        for i in range(1, height - 1):    
+            for j in range(1, width - 1):
+                if self.grid.get(j, i).can_overlap():
+                    self.all_visited_count += 1
+
+    def _reward(self):
+        visited_term =  1 - 0.9 * (self.visited_count * 1.0 / self.all_visited_count)
+        step_term = 1 - 0.9 * (self.step_count / self.max_steps)
+        return step_term
+
+    def is_cross(self, current_pos):
+        x, y = current_pos
+        up_cell = self.grid.get(x, y - 1).can_overlap() if y - 1 >= 0 else False
+        down_cell = self.grid.get(x, y + 1).can_overlap() if y + 1 < self.height else False
+        left_cell = self.grid.get(x - 1, y).can_overlap() if x - 1 >= 0 else False
+        right_cell = self.grid.get(x + 1, y).can_overlap() if x + 1 < self.width else False
+
+        return (up_cell or down_cell) and (left_cell or right_cell)
+
+    def get_best_forward_pos(self):
+        '''
+        計算Forward要走到哪個點
+        如果有Goal就停在最遠的Goal
+        如果沒有Goal就停在最近的交叉點
+        都沒有就設定成最遠的可站點
+        '''
+
+        current_pos = np.array(self.agent_pos, dtype=np.int8)
+        next_pos = np.array(self.front_pos, dtype=np.int8)
+        offset = next_pos - current_pos
+        check_pos = current_pos
+        farest_goal = None
+        nearest_cross = None
+        farest_ovrelap_pos = None
+
+        while True:
+            check_cell = self.grid.get(*check_pos)
+            if check_cell is not None:
+                if check_cell.type == "goal":
+                    farest_goal = np.array(check_pos)
+                elif self.is_cross(check_pos):
+                    nearest_cross = np.array(check_pos)
+                elif check_cell.can_overlap():
+                    farest_ovrelap_pos = np.array(check_pos)
+                else:
+                    break
+            check_pos = check_pos + offset
+
+        if farest_goal is not None:
+            return farest_goal, offset
+        elif nearest_cross is not None:
+            return nearest_cross, offset
+        else:
+            return farest_ovrelap_pos, offset
 
     def step(self, action):
         self.step_count += 1
@@ -177,9 +237,12 @@ class EdgeEnv(MiniGridEnv):
         terminated = False
         truncated = False
 
+        # 計算Forward要走到哪個點
+        best_forward_pos, offset = self.get_best_forward_pos()
+
         # Get the position in front of the agent
         fwd_pos = self.front_pos
-
+        
         # Get the contents of the cell in front of the agent
         fwd_cell = self.grid.get(*fwd_pos)
 
@@ -195,14 +258,23 @@ class EdgeEnv(MiniGridEnv):
 
         # Move forward
         elif action == self.actions.forward:
-            if fwd_cell is None or fwd_cell.can_overlap():
-                self.agent_pos = tuple(fwd_pos)
-                self.grid.set(fwd_pos[0], fwd_pos[1], Floor(color="grey"))
-                self.visited_array[fwd_pos[0]][fwd_pos[1]] = 1
-            if fwd_cell is not None and fwd_cell.type == "goal":
-                reward = self._reward()
-                self.goal_count -= 1
-                
+            if fwd_cell.can_overlap():
+                current_pos = np.array(self.agent_pos)
+                while True:
+                    if self.grid.get(*current_pos).type == "goal":
+                        self.grid.set(current_pos[0], current_pos[1], Floor(color="grey"))
+                        reward = self._reward()
+                        self.goal_count -= 1
+                    if self.visited_array[fwd_pos[0]][fwd_pos[1]] != 1:
+                        self.visited_count += 1
+                        self.visited_array[current_pos[0]][current_pos[1]] = 1
+                    if np.array_equal(current_pos, best_forward_pos):
+                        break
+                    current_pos = current_pos + offset
+
+                self.agent_pos = tuple(best_forward_pos)
+            else:
+                reward = -1
         else:
             raise ValueError(f"Unknown action: {action}")
 

@@ -76,11 +76,13 @@ for episode in range(args.episodes):
         agent.analyze_feedback(reward, done)
 
         if done:
+            frames.append(env.get_frame().astype(np.uint8))
             break
 
     if args.gif:
         print("Saving gif... ", end="")
         imgs = [Image.fromarray(img).quantize(method=Image.MEDIANCUT) for img in frames]
         # duration is the number of milliseconds between frames
-        imgs[0].save("gifs/" + args.gif+str(episode)+".gif", save_all=True, append_images=imgs[1:], duration=200, loop=0)
+        # loop is 0 for open and 1 for close
+        imgs[0].save("gifs/" + args.gif+str(episode)+".gif", save_all=True, append_images=imgs[1:], duration=200, loop=1)
         print("Done.")

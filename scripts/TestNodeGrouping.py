@@ -26,7 +26,7 @@ parser.add_argument("--argmax", action="store_true", default=False,
                     help="select the action with highest probability (default: False)")
 parser.add_argument("--pause", type=float, default=0.1,
                     help="pause duration between two consequent actions of the agent (default: 0.1)")
-parser.add_argument("--gif", type=str, default="test_result",
+parser.add_argument("--gif", type=str, default=None,
                     help="store output as gif with the given filename")
 parser.add_argument("--episodes", type=int, default=1,
                     help="number of episodes to visualize")
@@ -152,7 +152,6 @@ class Tester:
             if root_node in checked_list:
                 continue
 
-            checked_list.append(root_node)
             plane_center_point = np.array(root_node[0:3])
             node_list_2d = []
             print("Root:", plane_center_point)
