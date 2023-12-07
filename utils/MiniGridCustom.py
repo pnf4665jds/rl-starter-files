@@ -259,19 +259,23 @@ class EdgeEnv(MiniGridEnv):
         # Move forward
         elif action == self.actions.forward:
             if fwd_cell.can_overlap():
-                current_pos = np.array(self.agent_pos)
+                check_pos = np.array(self.front_pos)
                 while True:
-                    current_cell = self.grid.get(*current_pos)
-                    if current_cell.type == "goal":
-                        self.grid.set(current_pos[0], current_pos[1], Floor(color="blue"))
+                    print(check_pos)
+                    check_cell = self.grid.get(*check_pos)
+                    if check_cell.type == "goal":
+                        self.grid.set(check_pos[0], check_pos[1], Floor(color="blue"))
                         reward = self._reward()
                         self.goal_count -= 1
-                    if self.visited_array[current_pos[0]][current_pos[1]] != 1:
+                    if self.visited_array[check_pos[0]][check_pos[1]] != 1:
                         self.visited_count += 1
-                        self.visited_array[current_pos[0]][current_pos[1]] = 1
-                    if np.array_equal(current_pos, best_forward_pos):
+                        self.visited_array[check_pos[0]][check_pos[1]] = 1
+                    if np.array_equal(check_pos, best_forward_pos):
                         break
-                    current_pos = current_pos + offset
+                    
+                    check_pos = check_pos + offset
+                    if check_pos[0] < 0 or check_pos[0] >= self.width or check_pos[1] < 0 or check_pos[1] >= self.height:
+                        break
 
                 self.agent_pos = tuple(best_forward_pos)
             else:
