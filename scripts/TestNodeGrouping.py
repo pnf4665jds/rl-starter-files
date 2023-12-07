@@ -215,6 +215,10 @@ class Tester:
                     if done:
                         target_objects = self.env.target_obejcts.copy()
                         target_objects.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
+                        print("Visited Array")
+                        np.set_printoptions(linewidth=200)
+                        for e in self.env.visited_array:
+                            print(e)
                         self.explore_ones(
                             self.env.visited_array, 
                             self.env.root_pos[0], 

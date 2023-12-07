@@ -265,7 +265,7 @@ class EdgeEnv(MiniGridEnv):
                         self.grid.set(current_pos[0], current_pos[1], Floor(color="grey"))
                         reward = self._reward()
                         self.goal_count -= 1
-                    if self.visited_array[fwd_pos[0]][fwd_pos[1]] != 1:
+                    if self.visited_array[current_pos[0]][current_pos[1]] != 1:
                         self.visited_count += 1
                         self.visited_array[current_pos[0]][current_pos[1]] = 1
                     if np.array_equal(current_pos, best_forward_pos):

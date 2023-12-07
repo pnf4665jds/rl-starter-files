@@ -3,3 +3,4 @@
 .vscode
 result.json
 *.gif
+node_list.json
