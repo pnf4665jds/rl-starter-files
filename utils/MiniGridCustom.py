@@ -84,7 +84,7 @@ class EdgeEnv(MiniGridEnv):
             [-2, -1, 0],
             [-1, 0, 1],
             [-2, -1, 0],
-            [2], # 類型
+            [0, 1, 2], # 類型
         ]
 
         self.all_parameter_list = [c for c in itertools.product(*parameter_list)]
@@ -216,7 +216,10 @@ class EdgeEnv(MiniGridEnv):
                 if check_cell.type == "goal":
                     farest_goal = np.array(check_pos)
                 elif self.is_cross(check_pos):
-                    nearest_cross = np.array(check_pos)
+                    if nearest_cross is None:
+                        nearest_cross = np.array(check_pos)
+                    elif nearest_cross[0] == current_pos[0] and nearest_cross[1] == current_pos[1]:
+                        nearest_cross = np.array(check_pos)
                 elif check_cell.can_overlap():
                     farest_ovrelap_pos = np.array(check_pos)
                 else:
@@ -261,7 +264,6 @@ class EdgeEnv(MiniGridEnv):
             if fwd_cell.can_overlap():
                 check_pos = np.array(self.front_pos)
                 while True:
-                    print(check_pos)
                     check_cell = self.grid.get(*check_pos)
                     if check_cell.type == "goal":
                         self.grid.set(check_pos[0], check_pos[1], Floor(color="blue"))
