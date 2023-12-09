@@ -57,6 +57,8 @@ class EdgeEnv(MiniGridEnv):
         self.target_obejcts = None  # 紀錄元件在Grid的對應座標
         self.visited_count = 0
         self.all_visited_count = 0
+        self.rotate_pos = set()
+        self.previous_dir = -1
 
         self.sample_parameters()
 
@@ -84,7 +86,7 @@ class EdgeEnv(MiniGridEnv):
             [-2, -1, 0],
             [-1, 0, 1],
             [-2, -1, 0],
-            [0, 1, 2], # 類型
+            [0, 1, 2, 3], # 類型
         ]
 
         self.all_parameter_list = [c for c in itertools.product(*parameter_list)]
@@ -122,7 +124,7 @@ class EdgeEnv(MiniGridEnv):
                 self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
                 self.node_list_2d.append([3.5 - p[2], 5 + p[3] * 0.5, 1])
                 self.node_list_2d.append([3.5 - p[2], 4 + p[4] * 0.5, 10])
-            elif p[5] == 2:
+            elif p[5] == 2: # 拱狀
                 sample_points = [[2 + p[1] * 0.5 - p[2] + 0.5, 7.5], [4 + p[3] * 0.5 - p[2] + 0.5, 7.5], [7 - p[2], 4 + p[4] * 0.5 - 0.5]]
                 idx = p[0]
                 self.root_pos = sample_points[idx]
@@ -134,6 +136,21 @@ class EdgeEnv(MiniGridEnv):
                 self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
                 self.node_list_2d.append([4 + p[3] * 0.5 - p[2], 7.5, 1])
                 self.node_list_2d.append([6 + p[1] * 0.5 - p[2], 7.5, 0])
+            elif p[5] == 3: # 雙層拱
+                sample_points = [[2 + p[1] * 0.5 - p[2] + 0.5, 7.5], [4 + p[3] * 0.5 - p[2] + 0.5, 7.5], [7 - p[2], 4 + p[4] * 0.5 - 0.5]]
+                idx = p[0]
+                self.root_pos = sample_points[idx]
+                self.root_pos[0] = self.get_shift_x(self.root_pos[0])
+                self.root_pos[1] = self.get_shift_y(self.root_pos[1])
+                self.node_list_2d = []
+                self.node_list_2d.append([1, 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([7 - p[2], 4 + p[4] * 0.5, 10])
+                self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([4 + p[3] * 0.5 - p[2], 7.5, 1])
+                self.node_list_2d.append([6 + p[1] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 11, 0])
+                self.node_list_2d.append([4 + p[3] * 0.5 - p[2], 11, 1])
+                self.node_list_2d.append([6 + p[1] * 0.5 - p[2], 11, 0])
             self.test_idx += 1
             if self.test_idx >= len(self.all_parameter_list):
                 self.test_idx = 0
@@ -179,9 +196,10 @@ class EdgeEnv(MiniGridEnv):
             for j in range(1, width - 1):
                 if self.grid.get(j, i).can_overlap():
                     self.all_visited_count += 1
+        self.rotate_pos.clear()
+        self.previous_dir = self.agent_dir
 
     def _reward(self):
-        visited_term =  1 - 0.9 * (self.visited_count * 1.0 / self.all_visited_count)
         step_term = 1 - 0.9 * (self.step_count / self.max_steps)
         return step_term
 
@@ -262,6 +280,12 @@ class EdgeEnv(MiniGridEnv):
         # Move forward
         elif action == self.actions.forward:
             if fwd_cell.can_overlap():
+                # 紀錄轉向的座標(不計算原地旋轉)
+                if self.previous_dir != self.agent_dir:
+                    self.rotate_pos.add((self.agent_pos[0], self.agent_pos[1]))
+                
+                self.previous_dir = self.agent_dir
+
                 check_pos = np.array(self.front_pos)
                 while True:
                     check_cell = self.grid.get(*check_pos)
@@ -293,7 +317,7 @@ class EdgeEnv(MiniGridEnv):
 
         if self.goal_count <= 0:
             terminated = True
-            reward = 10
+            reward = 10.0 - len(self.rotate_pos) * 0.7
 
         obs = self.gen_obs()
 
