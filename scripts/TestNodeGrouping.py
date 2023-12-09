@@ -91,7 +91,8 @@ class Tester:
             if (0 <= new_x < rows) and (0 <= new_y < cols) and agent_visited_array[new_x][new_y] == 1 and not visited[new_x][new_y]:
                 new_edge = {
                     'Pts': [(x, y)],
-                    'Comps': []
+                    'Comps': [],
+                    'Parent': edge
                 }
                 self.dfs(agent_visited_array, new_x, new_y, visited, new_direction, new_edge, all_comps, result_edges)
                 if len(new_edge['Pts']) > 1:
@@ -101,7 +102,7 @@ class Tester:
         rows, cols = agent_visited_array.shape
         visited = [[False for _ in range(cols)] for _ in range(rows)]
 
-        root_edges = [{'Pts': [], 'Comps': []} for i in range(4)]
+        root_edges = [{'Pts': [], 'Comps': [], 'Parent': None} for i in range(4)]
 
         result_edges = []
         for comp in all_comps:
@@ -121,6 +122,14 @@ class Tester:
                 root_edge['Comps'].append(root_comp)
                 result_edges.append(root_edge)
 
+        # 為了透過json檔傳送，利用index紀錄Edge的Parent Edge
+        for result_edge in result_edges:
+            if result_edge['Parent'] is not None:
+                idx = result_edges.index(result_edge['Parent'])
+                result_edge['Parent'] = idx
+            else:
+                result_edge['Parent'] = -1
+
         result = {
             'Root Pos': [start_x, start_y],
             'Offset': [offset_x, offset_y],
@@ -131,7 +140,7 @@ class Tester:
             json.dump(result, file)
         #edge['Pts'].clear()
 
-    def calculate_optimized_edges(self, node_list):
+    def get_grid_edges(self, node_list):
         def point_to_2D(point, plane_point, v1, v2):
             translated_point = point - plane_point
 
@@ -223,10 +232,10 @@ class Tester:
                         all_comps = self.env.target_obejcts.copy()
                         # 把Root元件加入List
                         all_comps.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
-                        print("Visited Array")
-                        np.set_printoptions(linewidth=200)
-                        for e in self.env.visited_array:
-                            print(e)
+                        # print("Visited Array")
+                        # np.set_printoptions(linewidth=200)
+                        # for e in self.env.visited_array:
+                        #     print(e)
                         self.explore_ones(
                             self.env.visited_array, 
                             self.env.root_pos[0], 
@@ -254,4 +263,4 @@ if args.gif:
 
     frames = []
 
-Tester().calculate_optimized_edges(node_list)
+Tester().get_grid_edges(node_list)
