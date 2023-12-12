@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--env",
                     help="name of the environment to be run (REQUIRED)", default="MyEnv-v0")
 parser.add_argument("--model",
-                    help="name of the trained model (REQUIRED)", default="EdgeModelNewV2")
+                    help="name of the trained model (REQUIRED)", default="EdgeModelNewV5")
 parser.add_argument("--seed", type=int, default=0,
                     help="random seed (default: 0)")
 parser.add_argument("--shift", type=int, default=0,
