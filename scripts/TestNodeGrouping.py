@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--env",
                     help="name of the environment to be run (REQUIRED)", default="MyEnv-v0")
 parser.add_argument("--model",
-                    help="name of the trained model (REQUIRED)", default="EdgeModelNewV5")
+                    help="name of the trained model (REQUIRED)", default="EdgeModelNewV8")
 parser.add_argument("--seed", type=int, default=0,
                     help="random seed (default: 0)")
 parser.add_argument("--shift", type=int, default=0,
@@ -26,11 +26,11 @@ parser.add_argument("--argmax", action="store_true", default=False,
                     help="select the action with highest probability (default: False)")
 parser.add_argument("--pause", type=float, default=0.1,
                     help="pause duration between two consequent actions of the agent (default: 0.1)")
-parser.add_argument("--gif", type=str, default=None,
+parser.add_argument("--gif", type=str, default="BlenderResult",
                     help="store output as gif with the given filename")
 parser.add_argument("--episodes", type=int, default=1,
                     help="number of episodes to visualize")
-parser.add_argument("--memory", action="store_true", default=False,
+parser.add_argument("--memory", action="store_true", default=True,
                     help="add a LSTM to the model")
 parser.add_argument("--text", action="store_true", default=False,
                     help="add a GRU to the model")
@@ -229,6 +229,7 @@ class Tester:
                     self.agent.analyze_feedback(reward, done)
                     
                     if done:
+                        frames.append(self.env.get_frame().astype(np.uint8))
                         all_comps = self.env.target_obejcts.copy()
                         # 把Root元件加入List
                         all_comps.append((self.env.root_pos[0], self.env.root_pos[1], root_node[4]))
@@ -249,7 +250,7 @@ class Tester:
                 print("Saving gif... ", end="")
                 imgs = [Image.fromarray(img).quantize(method=Image.MEDIANCUT) for img in frames]
                 # duration is the number of milliseconds between frames
-                imgs[0].save(os.path.join(os.path.abspath(__file__ + "/../../gifs/"), args.gif + f"{episode}.gif"), save_all=True, append_images=imgs[1:], duration=200, loop=0)
+                imgs[0].save(os.path.join(os.path.abspath(__file__ + "/../../gifs/"), args.gif + f"{episode}.gif"), save_all=True, append_images=imgs[1:], duration=100, loop=0)
                 print("Done.")
 
 with open(os.path.join(os.path.abspath(__file__ + "/../../"), "node_list.json"), "r") as file:

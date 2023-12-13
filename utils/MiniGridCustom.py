@@ -32,7 +32,7 @@ class EdgeEnv(MiniGridEnv):
     ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
-
+        
         mission_space = MissionSpace(mission_func=self._gen_mission)
 
         if max_steps is None:
@@ -44,7 +44,7 @@ class EdgeEnv(MiniGridEnv):
             # Set this to True for maximum speed
             see_through_walls=True,
             max_steps=max_steps,
-            agent_view_size=25,
+            agent_view_size=11,
             **kwargs,
         )
         self.action_space = spaces.Discrete(3)
@@ -109,8 +109,8 @@ class EdgeEnv(MiniGridEnv):
                 self.node_list_2d = []
                 self.node_list_2d.append([1, 7.5, 9])
                 self.node_list_2d.append([2 + p[1] * 0.5 - p[2], 7.5, 0])
-                self.node_list_2d.append([6 - p[2], 7.5, 9])
-                self.node_list_2d.append([5 + p[2] * 0.5 - p[2], 7.5, 0])
+                self.node_list_2d.append([8 - p[2], 7.5, 9])
+                self.node_list_2d.append([6 + p[2] * 0.5 - p[2], 7.5, 0])
                 self.node_list_2d.append([3.5 - p[2], 5 + p[3] * 0.5, 1])
                 self.node_list_2d.append([3.5 - p[2], 4 + p[4] * 0.5, 10])
             elif p[5] == 1: # 單桿紅綠燈
