@@ -172,7 +172,7 @@ class EdgeEnv(MiniGridEnv):
          
             # Generate wall
             for i in range(1, height - 1):
-                if i == goal_y or (category == 9) or self.grid.get(goal_x, i).type == 'goal':
+                if i == goal_y or (category == 9) or (category == 11) or self.grid.get(goal_x, i).type == 'goal':
                     continue
                 self.grid.set(goal_x, i, Floor(color="grey"))
             for j in range(1, width - 1):
